@@ -1,0 +1,22 @@
+<form [formGroup]="dynamicForm">
+  <div class="card">
+  @for (form of forms; track form.type) {
+
+    @if(dynamicForm.get(form.key)?.value && dynamicForm.get(form.key)?.value !== '' && dynamicForm.get(form.key)?.value === parsedData[form.key]) {
+        <ng-container [formControlName]="form.key" *ngComponentOutlet="form.component; inputs: { formName: form.key, data: form.data, sessionData: parsedData[form.key]  }" />
+    }
+  }
+  </div>
+  <div class="card">
+    @for (form of forms; track form.type) {
+      @if(dynamicForm.get(form.key) && dynamicForm.get(form.key)?.value !== parsedData[form.key]) {
+        <div>
+          <ng-container [formControlName]="form.key" *ngComponentOutlet="form.component; inputs: { formName: form.key, data: form.data }" />
+        </div>
+      }
+    }
+  </div>
+
+  <button type="submit" (click)="onSubmit()">test</button>
+</form>
+
