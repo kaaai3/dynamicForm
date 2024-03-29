@@ -29,6 +29,7 @@ import { Injectable } from '@angular/core';
      {
        type: 'dropdown',
        key: 'custom3',
+       shouldShowWhen: { key: 'custom2', value: '1' },
        data: {
          label: 'dropdown',
          options: [{label: 'bla', value: '1'}, {label: 'bla2', value: '2'}],
@@ -40,6 +41,7 @@ import { Injectable } from '@angular/core';
      {
         type: 'radio',
         key: 'custom4',
+        // visibilityCondition: () => Promise.resolve(true),
         data: {
           label: 'Radio 2',
           options: [{label: 'blaaa', value: '1'}, {label: 'blaaa2', value: '2'}, {label: 'blaaa2', value: '3'}],

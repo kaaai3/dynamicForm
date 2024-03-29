@@ -2,6 +2,15 @@ import { Component, OnInit, Input } from '@angular/core';
 import { ReactiveFormsModule, ControlContainer, FormGroupDirective } from '@angular/forms';
 import { NgForOf } from "@angular/common";
 
+@Component({ template: '',standalone: true,})
+export class BaseComponent {
+  @Input() formName: any;
+  @Input() sessionData: any;
+  @Input() data: any;
+
+  constructor(public controlContainer: ControlContainer, public formGroupDirective: FormGroupDirective) {}
+}
+
 @Component({selector: 'ind-input',
   imports: [ReactiveFormsModule],
   standalone: true,
@@ -21,51 +30,21 @@ import { NgForOf } from "@angular/common";
   `],
   template: `
     @if(sessionData){
-      <div><strong>{{data.label}}</strong></div>
-      {{sessionData}}
+      <div>
+        <div><strong>{{data.label}}</strong></div>
+        {{sessionData}}
+      </div>
     } @else {
       <div><strong>{{data.label}}</strong></div>
       <input [formControlName]="formName">
     }
 
   `})
-export class TextInput {
-  @Input() formName: any;
-  @Input() sessionData: any;
-  @Input() data: any;
+export class TextInput extends BaseComponent {
+
 }
 
 @Component({selector: 'ind-radios',
-  imports: [ReactiveFormsModule],
-  standalone: true,
-  viewProviders: [
-    {
-      provide: ControlContainer,
-      useExisting: FormGroupDirective
-    },
-  ],
-  template: `
-    @if(sessionData){
-      <div><strong>{{data.label}}</strong></div>
-      {{sessionData}}
-    } @else {
-      <div>
-        <strong>{{data.label}}</strong>
-      </div>
-      @for(option of data.options; track $index) {
-        <label>{{option.label}}</label>
-        <input type="radio" [value]="option.value" [name]="formName" [formControlName]="formName">
-      }
-    }
-
-`})
-export class Radios {
-  @Input() formName: any;
-  @Input() sessionData: any;
-  @Input() data: any;
-}
-
-@Component({selector: 'ind-dropdown',
   imports: [ReactiveFormsModule, NgForOf],
   standalone: true,
   viewProviders: [
@@ -76,8 +55,41 @@ export class Radios {
   ],
   template: `
     @if(sessionData){
+      <div>
       <div><strong>{{data.label}}</strong></div>
       {{sessionData}}
+      </div>
+    } @else {
+      <div>
+        <strong>{{data.label}}</strong>
+      </div>
+        <ng-container *ngFor="let option of data.options">
+          <label>{{option.label}}</label>
+          <input type="radio" [value]="option.value" [name]="formName" [formControlName]="formName">
+        </ng-container>
+
+    }
+
+`})
+export class Radios extends BaseComponent {
+
+}
+
+@Component({selector: 'ind-dropdown',
+  imports: [NgForOf, ReactiveFormsModule],
+  standalone: true,
+  viewProviders: [
+    {
+      provide: ControlContainer,
+      useExisting: FormGroupDirective
+    },
+  ],
+  template: `
+    @if(sessionData){
+      <div>
+        <div><strong>{{data.label}}</strong></div>
+        {{sessionData}}
+      </div>
     } @else {
       <div><strong>{{data.label}}</strong></div>
       <select [formControlName]="formName">
@@ -86,11 +98,10 @@ export class Radios {
     }
 
 `})
-export class Dropdown {
-  @Input() formName: any;
-  @Input() sessionData: any;
-  @Input() data: any;
+export class Dropdown extends BaseComponent {
+
 }
+
 
 export const customInputs = [
   {

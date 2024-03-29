@@ -10,7 +10,8 @@ export interface FormStructure {
   validations: any;
   data: any;
   component?: any;
-  shouldShowWhen?: string[];
+  shouldShowWhen?: {};
+  // visibilityCondition?: () => Promise<boolean>;
 }
 
 @Component({
@@ -32,22 +33,24 @@ export class DynamicFormComponent implements OnInit {
   ngOnInit() {
     const customFormStructure = this.formService.getCustomFormStructure();
 
-    this.forms = customFormStructure.map(({ type, key, validations, data }) => ({
+    // Create form structure and map to components
+    this.forms = customFormStructure.map(({ type, key, validations, data, shouldShowWhen }) => ({
       type,
       component: customInputs.find(input => input.type === type)?.component,
       key,
       validations,
-      data
+      data,
+      shouldShowWhen,
     }));
 
-    console.log(this.forms)
+    // Get form data from session storage
     let sessionData = sessionStorage.getItem('formData');
     if (sessionData) {
       this.parsedData = JSON.parse(sessionData);
     }
 
-
-     let formGroup: { [key: string]: any } = {};
+    // Create form group
+    let formGroup: { [key: string]: any } = {};
     this.forms.forEach((control: FormStructure) => {
       let controlValidators: any[] = [];
 
@@ -63,7 +66,6 @@ export class DynamicFormComponent implements OnInit {
     });
 
      this.dynamicForm = this.formBuilder.group(formGroup);
-    console.log(this.dynamicForm)
   }
 
   onSubmit() {
@@ -77,6 +79,14 @@ export class DynamicFormComponent implements OnInit {
 
     if (isNotEmpty) {
       sessionStorage.setItem('formData', JSON.stringify(filteredFormValues));
+    }
+  }
+
+  shouldShowForm(form: any): boolean {
+    if(form.shouldShowWhen) {
+      return this.dynamicForm.get(form.shouldShowWhen.key)?.value === form.shouldShowWhen.value
+    } else {
+      return true;
     }
   }
 
