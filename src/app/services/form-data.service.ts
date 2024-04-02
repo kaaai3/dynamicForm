@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { FormGroup } from "@angular/forms";
+import { of } from "rxjs";
 
  @Injectable({
    providedIn: 'root'
@@ -29,7 +31,8 @@ import { Injectable } from '@angular/core';
      {
        type: 'dropdown',
        key: 'custom3',
-       shouldShowWhen: { key: 'custom2', value: '1' },
+       // shouldShowWhen: { key: 'custom2', value: '1' },
+       visibilityCondition: (formGroup: FormGroup) => of(formGroup.get('custom2')?.value === '1'),
        data: {
          label: 'dropdown',
          options: [{label: 'bla', value: '1'}, {label: 'bla2', value: '2'}],
@@ -41,7 +44,7 @@ import { Injectable } from '@angular/core';
      {
         type: 'radio',
         key: 'custom4',
-        // visibilityCondition: () => Promise.resolve(true),
+        visibilityCondition: (formGroup: FormGroup) => of(formGroup.get('custom3')?.value === '2'),
         data: {
           label: 'Radio 2',
           options: [{label: 'blaaa', value: '1'}, {label: 'blaaa2', value: '2'}, {label: 'blaaa2', value: '3'}],

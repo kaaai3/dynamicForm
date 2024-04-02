@@ -31,11 +31,14 @@
   </div>
   <div class="card">
     <ng-container *ngFor="let form of forms">
-      <ng-container *ngIf="shouldShowForm(form) && dynamicForm.get(form.key)?.value !== parsedData[form.key]">
-        <div>
-          <ng-container [formControlName]="form.key" *ngComponentOutlet="form.component; inputs: { formName: form.key, data: form.data }"></ng-container>
-        </div>
+      <ng-container *ngIf="dynamicForm.get(form.key)?.value !== parsedData[form.key]">
+        <ng-container *ngIf="!form.visibilityCondition || (form.visibilityCondition(dynamicForm) | async)">
+          <div>
+            <ng-container [formControlName]="form.key" *ngComponentOutlet="form.component; inputs: { formName: form.key, data: form.data }"></ng-container>
+          </div>
+        </ng-container>
       </ng-container>
+
     </ng-container>
   </div>
 

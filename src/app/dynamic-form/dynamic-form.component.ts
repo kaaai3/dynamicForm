@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angula
 import { CommonModule } from "@angular/common";
 import { FormService } from "../services/form-data.service";
 import { customInputs } from "../inputs/inputs.component";
+import { Observable } from "rxjs";
 
 export interface FormStructure {
   type: string;
@@ -11,7 +12,7 @@ export interface FormStructure {
   data: any;
   component?: any;
   shouldShowWhen?: {};
-  // visibilityCondition?: () => Promise<boolean>;
+  visibilityCondition?: (formGroup: FormGroup) => Observable<boolean>;
 }
 
 @Component({
@@ -34,13 +35,13 @@ export class DynamicFormComponent implements OnInit {
     const customFormStructure = this.formService.getCustomFormStructure();
 
     // Create form structure and map to components
-    this.forms = customFormStructure.map(({ type, key, validations, data, shouldShowWhen }) => ({
+    this.forms = customFormStructure.map(({ type, key, validations, data, visibilityCondition }) => ({
       type,
       component: customInputs.find(input => input.type === type)?.component,
       key,
       validations,
       data,
-      shouldShowWhen,
+      visibilityCondition,
     }));
 
     // Get form data from session storage
@@ -54,6 +55,8 @@ export class DynamicFormComponent implements OnInit {
     this.forms.forEach((control: FormStructure) => {
       let controlValidators: any[] = [];
 
+      controlValidators.push(Validators.required);
+
        if (control.validations) {
          control.validations.forEach((validation: any) => {
            controlValidators.push(Validators.required);
@@ -66,10 +69,20 @@ export class DynamicFormComponent implements OnInit {
     });
 
      this.dynamicForm = this.formBuilder.group(formGroup);
+
+    this.updateVisibilityConditions();
+    //
+    // // Call the function whenever the form values change
+    this.dynamicForm.valueChanges.subscribe((value) => {
+      this.updateVisibilityConditions();
+      console.log(value)
+    });
+
   }
 
   onSubmit() {
     console.log(this.parsedData);
+    console.log(this.dynamicForm);
     const formValues = this.dynamicForm.value;
     const filteredFormValues = Object.fromEntries(
       Object.entries(formValues).filter(([key, value]) => value && value !== '')
@@ -82,12 +95,23 @@ export class DynamicFormComponent implements OnInit {
     }
   }
 
-  shouldShowForm(form: any): boolean {
-    if(form.shouldShowWhen) {
-      return this.dynamicForm.get(form.shouldShowWhen.key)?.value === form.shouldShowWhen.value
-    } else {
-      return true;
-    }
+  updateVisibilityConditions() {
+    this.forms.forEach(form => {
+      if (form.visibilityCondition) {
+        form.visibilityCondition(this.dynamicForm).subscribe(isVisible => {
+          const formControl = this.dynamicForm.get(form.key);
+          if (isVisible && formControl?.disabled) {
+            formControl.enable({ emitEvent: false });
+          } else if (!isVisible && formControl?.enabled) {
+            formControl.disable({ emitEvent: false });
+          }
+        });
+      } else {
+        // If there is no visibility condition, the form control should be enabled by default
+        // this.dynamicForm.get(form.key)?.enable({ emitEvent: false });
+      }
+    });
   }
+
 
 }
