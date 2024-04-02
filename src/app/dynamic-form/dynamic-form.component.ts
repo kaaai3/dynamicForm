@@ -11,7 +11,7 @@ export interface FormStructure {
   validations: any;
   data: any;
   component?: any;
-  shouldShowWhen?: {};
+  shouldShowWhen?: { key: string, operator: string, value: string }[];
   visibilityCondition?: (formGroup: FormGroup) => Observable<boolean>;
 }
 
@@ -35,13 +35,14 @@ export class DynamicFormComponent implements OnInit {
     const customFormStructure = this.formService.getCustomFormStructure();
 
     // Create form structure and map to components
-    this.forms = customFormStructure.map(({ type, key, validations, data, visibilityCondition }) => ({
+    this.forms = customFormStructure.map(({ type, key, validations, data, visibilityCondition, shouldShowWhen }) => ({
       type,
       component: customInputs.find(input => input.type === type)?.component,
       key,
       validations,
       data,
       visibilityCondition,
+      shouldShowWhen
     }));
 
     // Get form data from session storage
@@ -113,5 +114,37 @@ export class DynamicFormComponent implements OnInit {
     });
   }
 
+  isVisible(shouldShowWhen: any[]) {
+    for (let condition of shouldShowWhen) {
+      const formControl = this.dynamicForm.get(condition.key);
+      if (formControl) {
+        switch (condition.operator) {
+          case 'equals':
+            if (formControl.value !== condition.value) return false;
+            break;
+          case 'not equals':
+            if (formControl.value === condition.value) return false;
+            break;
+          case 'greater than':
+            if (formControl.value <= condition.value) return false;
+            break;
+          case 'less than':
+            if (formControl.value >= condition.value) return false;
+            break;
+          case 'greater than or equals':
+            if (formControl.value < condition.value) return false;
+            break;
+          case 'less than or equals':
+            if (formControl.value > condition.value) return false;
+            break;
+          default:
+            return false;
+        }
+      } else {
+        return false;
+      }
+    }
+    return true;
+  }
 
 }
